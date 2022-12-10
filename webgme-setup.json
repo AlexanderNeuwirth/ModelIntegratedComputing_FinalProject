@@ -1,0 +1,23 @@
+{
+  "components": {
+    "visualizers": {
+      "PetriNetVisualizer": {
+        "src": "panels/PetriNetVisualizer/PetriNetVisualizerPanel",
+        "title": "PetriNetVisualizer",
+        "panel": "src/visualizers/panels/PetriNetVisualizer",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/PetriNetVisualizer"
+      }
+    },
+    "plugins": {
+      "ClassifyPetriNet": {
+        "src": "src/plugins/ClassifyPetriNet",
+        "test": "test/plugins/ClassifyPetriNet"
+      }
+    }
+  },
+  "dependencies": {
+    "visualizers": {},
+    "plugins": {}
+  }
+}
