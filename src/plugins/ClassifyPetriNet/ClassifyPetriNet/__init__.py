@@ -29,7 +29,6 @@ class ClassifyPetriNet(PluginBase):
         in_nodes = {}
         out_nodes = {}
 
-        # we build the most simple graph representation possible
         nodes = core.load_children(active_node)
         for node in nodes:
             if core.is_type_of(node, META['Place']):
@@ -54,6 +53,12 @@ class ClassifyPetriNet(PluginBase):
             if place not in in_nodes:
                 in_nodes[place] = []
 
+        for transition in transitions:
+            if transition not in out_nodes:
+                out_nodes[transition] = []
+            if transition not in in_nodes:
+                in_nodes[transition] = []
+
 
         def classify_free_choice_net():
             visited_inplaces = set()
@@ -69,7 +74,6 @@ class ClassifyPetriNet(PluginBase):
         self.send_notification(f'Is free choice net: {classify_free_choice_net()}')
 
         def classify_state_machine():
-            visited_inplaces = set()
             for transition in transitions:
                 inplaces = in_nodes[transition]
                 outplaces = out_nodes[transition]
@@ -79,6 +83,17 @@ class ClassifyPetriNet(PluginBase):
             return True
 
         self.send_notification(f'Is state machine: {classify_state_machine()}')
+
+        def classify_marked_graph():
+            for place in places:
+                intransitions = in_nodes[place]
+                outtransitions = out_nodes[place]
+                if (len(intransitions) != 1) or (len(outtransitions) != 1):
+                    # Every place must have exactly one intransition and outtransition
+                    return False
+            return True
+
+        self.send_notification(f'Is marked graph: {classify_marked_graph()}')
 
         def classify_workflow_net():
             source_place = None

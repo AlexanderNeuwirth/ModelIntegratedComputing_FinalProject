@@ -25,55 +25,35 @@ define([
         this._widget = options.widget;
 
         this._currentNodeId = null;
-        this._currentNodeParentId = undefined;
-
-        this._initWidgetEventHandlers();
 
         this._logger.debug('ctor finished');
     }
-
-    PetriNetVisualizerControl.prototype._initWidgetEventHandlers = function () {
-        this._widget.onNodeClick = function (id) {
-            // Change the current active object
-            WebGMEGlobal.State.registerActiveObject(id);
-        };
-    };
 
     /* * * * * * * * Visualizer content update callbacks * * * * * * * */
     // One major concept here is with managing the territory. The territory
     // defines the parts of the project that the visualizer is interested in
     // (this allows the browser to then only load those relevant parts).
     PetriNetVisualizerControl.prototype.selectedObjectChanged = function (nodeId) {
-        var desc = this._getObjectDescriptor(nodeId),
-            self = this;
-
-        self._logger.debug('activeObject nodeId \'' + nodeId + '\'');
+        var self = this;
 
         // Remove current territory patterns
         if (self._currentNodeId) {
             self._client.removeUI(self._territoryId);
+            self._networkRootLoaded = false;
         }
 
         self._currentNodeId = nodeId;
-        self._currentNodeParentId = undefined;
 
         if (typeof self._currentNodeId === 'string') {
             // Put new node's info into territory rules
             self._selfPatterns = {};
-            self._selfPatterns[nodeId] = {children: 0};  // Territory "rule"
-
-            self._widget.setTitle(desc.name.toUpperCase());
-
-            self._currentNodeParentId = desc.parentId;
+            self._selfPatterns[nodeId] = {children: 1};  // Territory "rule"
 
             self._territoryId = self._client.addUI(self, function (events) {
                 self._eventCallback(events);
             });
 
             // Update the territory
-            self._client.updateTerritory(self._territoryId, self._selfPatterns);
-
-            self._selfPatterns[nodeId] = {children: 1};
             self._client.updateTerritory(self._territoryId, self._selfPatterns);
         }
     };
@@ -122,7 +102,9 @@ define([
         });
         pn.setFireableEvents = this.setFireableEvents;
 
-        self._widget.initNet(pn);
+        if (self._widget) {
+            self._widget.initNet(pn);
+        }
     };
 
     // This next function retrieves the relevant node information for the widget
@@ -169,21 +151,9 @@ define([
     PetriNetVisualizerControl.prototype.clearPN = function () {
         const self = this;
         self._networkRootLoaded = false;
-        self._widget.destroyNet();
-    };
-
-    PetriNetVisualizerControl.prototype._onLoad = function (gmeId) {
-        var description = this._getObjectDescriptor(gmeId);
-        this._widget.addNode(description);
-    };
-
-    PetriNetVisualizerControl.prototype._onUpdate = function (gmeId) {
-        var description = this._getObjectDescriptor(gmeId);
-        this._widget.updateNode(description);
-    };
-
-    PetriNetVisualizerControl.prototype._onUnload = function (gmeId) {
-        this._widget.removeNode(gmeId);
+        if(self._widget) {
+            self._widget.destroyNet();
+        }
     };
 
     PetriNetVisualizerControl.prototype._stateActiveObjectChanged = function (model, activeObjectId) {
@@ -194,12 +164,6 @@ define([
         }
     };
 
-    /* * * * * * * * Visualizer life cycle callbacks * * * * * * * */
-    PetriNetVisualizerControl.prototype.destroy = function () {
-        this._detachClientEventListeners();
-        this._removeToolbarItems();
-    };
-
     PetriNetVisualizerControl.prototype._attachClientEventListeners = function () {
         this._detachClientEventListeners();
         WebGMEGlobal.State.on('change:' + CONSTANTS.STATE_ACTIVE_OBJECT, this._stateActiveObjectChanged, this);
@@ -207,6 +171,14 @@ define([
 
     PetriNetVisualizerControl.prototype._detachClientEventListeners = function () {
         WebGMEGlobal.State.off('change:' + CONSTANTS.STATE_ACTIVE_OBJECT, this._stateActiveObjectChanged);
+    };
+
+    /* * * * * * * * Visualizer life cycle callbacks * * * * * * * */
+    PetriNetVisualizerControl.prototype.destroy = function () {
+        this._detachClientEventListeners();
+        this._removeToolbarItems();
+        delete this._widget
+        this._networkRootLoaded = false;
     };
 
     PetriNetVisualizerControl.prototype.onActivate = function () {

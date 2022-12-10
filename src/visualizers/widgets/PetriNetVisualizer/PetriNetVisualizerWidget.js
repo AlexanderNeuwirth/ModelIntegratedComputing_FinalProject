@@ -279,23 +279,6 @@ define(['jointjs', 'css!./styles/PetriNetVisualizerWidget.css'], function (joint
         self._decorateMachine();
     };
 
-    PetriNetVisualizerWidget.prototype.removeNode = function (gmeId) {
-    };
-
-    PetriNetVisualizerWidget.prototype.updateNode = function (desc) {
-    };
-
-    /* * * * * * * * Visualizer event handlers * * * * * * * */
-
-    PetriNetVisualizerWidget.prototype.onNodeClick = function (/*id*/) {
-        // This currently changes the active node to the given id and
-        // this is overridden in the controller.
-    };
-
-    PetriNetVisualizerWidget.prototype.onBackgroundDblClick = function () {
-        this._el.append('<div>Background was double-clicked!!</div>');
-    };
-
     /* * * * * * * * Visualizer life cycle callbacks * * * * * * * */
     PetriNetVisualizerWidget.prototype.destroy = function () {
     };
